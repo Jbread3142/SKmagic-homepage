@@ -1,4 +1,4 @@
-const DATA = window.PRODUCT_DATA || {};
+﻿const DATA = window.PRODUCT_DATA || {};
 
 const CATEGORY_META = {
   water: {
@@ -48,10 +48,13 @@ function productHref(product) {
   if (product.model === "WPU-IAC606") {
     return "product-detail-wpu-iac606.html";
   }
+  if (product.category === "공기청정기") {
+    return `product-detail-air.html?id=${product.id}`;
+  }
   if (String(product.id).startsWith("G")) {
     return `product-detail-water.html?id=${product.id}`;
   }
-  if (product.category === "정수기" || product.category === "공기청정기" || product.category === "비데") {
+  if (product.category === "정수기" || product.category === "비데") {
     return `product-detail-${product.id}.html?id=${product.id}`;
   }
   return `#product-${product.id}`;
@@ -183,6 +186,27 @@ function renderRentalPanel(key, plans = [], tradePlans = [], activeKey = "visit"
   `;
 }
 
+function rentalLabel(product, key) {
+  return product.rentalLabels?.[key] || (key === "self" ? "셀프관리" : "방문관리");
+}
+
+function renderRentalGuide(guide, product) {
+  const plans = product.rentalPlans || {};
+  const hasVisit = (plans.visit || []).length > 0;
+  const hasSelf = (plans.self || []).length > 0;
+  const activeRentalType = hasVisit ? "visit" : "self";
+  const tabButtons = [
+    hasVisit ? `<button class="${activeRentalType === "visit" ? "is-active" : ""}" type="button" data-rental-tab="visit">${rentalLabel(product, "visit")}</button>` : "",
+    hasSelf ? `<button class="${activeRentalType === "self" ? "is-active" : ""}" type="button" data-rental-tab="self">${rentalLabel(product, "self")}</button>` : "",
+  ].join("");
+
+  guide.innerHTML = `
+    <div class="rental-type-tabs" role="tablist" aria-label="관리 방식 선택">${tabButtons}</div>
+    ${renderRentalPanel("visit", plans.visit || [], plans.visitTrade || [], activeRentalType)}
+    ${renderRentalPanel("self", plans.self || [], plans.selfTrade || [], activeRentalType)}
+  `;
+}
+
 function renderWaterDetailPage() {
   if (document.body.dataset.page !== "water-detail") return;
 
@@ -196,10 +220,8 @@ function renderWaterDetailPage() {
   const title = document.querySelector("[data-water-detail-title]");
   const badges = document.querySelector("[data-water-detail-badges]");
   const guide = document.querySelector("[data-water-rental-guide]");
+  const detailStack = document.querySelector("[data-water-detail-stack]");
   const plans = product.rentalPlans || {};
-  const hasVisit = (plans.visit || []).length > 0;
-  const hasSelf = (plans.self || []).length > 0;
-  const activeRentalType = hasVisit ? "visit" : "self";
 
   if (image) {
     image.src = product.image;
@@ -215,15 +237,47 @@ function renderWaterDetailPage() {
     ].join("");
   }
   if (guide) {
-    const tabButtons = [
-      hasVisit ? `<button class="${activeRentalType === "visit" ? "is-active" : ""}" type="button" data-rental-tab="visit">방문관리</button>` : "",
-      hasSelf ? `<button class="${activeRentalType === "self" ? "is-active" : ""}" type="button" data-rental-tab="self">셀프관리</button>` : "",
-    ].join("");
-    guide.innerHTML = `
-      <div class="rental-type-tabs" role="tablist" aria-label="관리 방식 선택">${tabButtons}</div>
-      ${renderRentalPanel("visit", plans.visit || [], plans.visitTrade || [], activeRentalType)}
-      ${renderRentalPanel("self", plans.self || [], plans.selfTrade || [], activeRentalType)}
-    `;
+    renderRentalGuide(guide, product);
+  }
+  if (detailStack) {
+    detailStack.innerHTML = product.detailImage
+      ? `<img src="${product.detailImage}" alt="${product.name} ${product.model} 상세 이미지">`
+      : `<p class="detail-placeholder">상세 이미지는 준비 중입니다.</p>`;
+  }
+}
+
+function renderAirDetailPage() {
+  if (document.body.dataset.page !== "air-detail") return;
+
+  const id = new URLSearchParams(location.search).get("id");
+  const product = (DATA.air || []).find((item) => item.id === id) || (DATA.air || [])[0];
+  if (!product) return;
+
+  document.title = `${product.name} ${product.model} | 세모가 - SK매직 다이렉트`;
+
+  const image = document.querySelector("[data-air-detail-image]");
+  const title = document.querySelector("[data-air-detail-title]");
+  const badges = document.querySelector("[data-air-detail-badges]");
+  const guide = document.querySelector("[data-air-rental-guide]");
+  const detailStack = document.querySelector("[data-air-detail-stack]");
+
+  if (image) {
+    image.src = product.image;
+    image.alt = `${product.name} ${product.model}`;
+  }
+  if (title) {
+    title.innerHTML = `${product.name}<span>${product.model}</span>`;
+  }
+  if (badges) {
+    badges.innerHTML = product.benefit ? `<span>${product.benefit}</span>` : "";
+  }
+  if (guide) {
+    renderRentalGuide(guide, product);
+  }
+  if (detailStack) {
+    detailStack.innerHTML = product.detailImage
+      ? `<img src="${product.detailImage}" alt="${product.name} ${product.model} 상세 이미지">`
+      : `<p class="detail-placeholder">상세 이미지는 준비 중입니다.</p>`;
   }
 }
 
@@ -264,6 +318,10 @@ window.addEventListener("scroll", syncHeaderState, { passive: true });
 renderHome();
 renderCategoryPage();
 renderWaterDetailPage();
+renderAirDetailPage();
 bindRentalTabs();
 syncRoute();
 syncHeaderState();
+
+
+
