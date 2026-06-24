@@ -54,7 +54,13 @@ function productHref(product) {
   if (String(product.id).startsWith("G")) {
     return `product-detail-water.html?id=${product.id}`;
   }
-  if (product.category === "정수기" || product.category === "비데") {
+  if (product.category === "비데") {
+    return `product-detail-bidet.html?id=${product.id}`;
+  }
+  if (product.category === "매트리스") {
+    return `product-detail-mattress.html?id=${product.id}`;
+  }
+  if (product.category === "정수기") {
     return `product-detail-${product.id}.html?id=${product.id}`;
   }
   return `#product-${product.id}`;
@@ -133,6 +139,7 @@ function renderCategoryPage() {
   const count = document.querySelector("[data-product-count]");
 
   if (grid) {
+    grid.classList.toggle("mattress-grid", key === "sleep");
     grid.innerHTML = products.map((product) => productCard(product, "listing")).join("");
   }
   if (count && meta) {
@@ -192,18 +199,21 @@ function rentalLabel(product, key) {
 
 function renderRentalGuide(guide, product) {
   const plans = product.rentalPlans || {};
-  const hasVisit = (plans.visit || []).length > 0;
-  const hasSelf = (plans.self || []).length > 0;
-  const activeRentalType = hasVisit ? "visit" : "self";
-  const tabButtons = [
-    hasVisit ? `<button class="${activeRentalType === "visit" ? "is-active" : ""}" type="button" data-rental-tab="visit">${rentalLabel(product, "visit")}</button>` : "",
-    hasSelf ? `<button class="${activeRentalType === "self" ? "is-active" : ""}" type="button" data-rental-tab="self">${rentalLabel(product, "self")}</button>` : "",
-  ].join("");
+  const rentalTypes = (product.rentalOrder || Object.keys(plans)).filter((key) => {
+    return !key.endsWith("Trade") && (plans[key] || []).length > 0;
+  });
+  const activeRentalType = rentalTypes[0] || "visit";
+  const tabButtons = rentalTypes
+    .map((key) => {
+      return `<button class="${activeRentalType === key ? "is-active" : ""}" type="button" data-rental-tab="${key}">${rentalLabel(product, key)}</button>`;
+    })
+    .join("");
 
   guide.innerHTML = `
     <div class="rental-type-tabs" role="tablist" aria-label="관리 방식 선택">${tabButtons}</div>
-    ${renderRentalPanel("visit", plans.visit || [], plans.visitTrade || [], activeRentalType)}
-    ${renderRentalPanel("self", plans.self || [], plans.selfTrade || [], activeRentalType)}
+    ${rentalTypes
+      .map((key) => renderRentalPanel(key, plans[key] || [], plans[`${key}Trade`] || [], activeRentalType))
+      .join("")}
   `;
 }
 
@@ -281,6 +291,76 @@ function renderAirDetailPage() {
   }
 }
 
+function renderBidetDetailPage() {
+  if (document.body.dataset.page !== "bidet-detail") return;
+
+  const id = new URLSearchParams(location.search).get("id");
+  const product = (DATA.bidet || []).find((item) => item.id === id) || (DATA.bidet || [])[0];
+  if (!product) return;
+
+  document.title = `${product.name} ${product.model} | 세모가 - SK매직 다이렉트`;
+
+  const image = document.querySelector("[data-bidet-detail-image]");
+  const title = document.querySelector("[data-bidet-detail-title]");
+  const badges = document.querySelector("[data-bidet-detail-badges]");
+  const guide = document.querySelector("[data-bidet-rental-guide]");
+  const detailStack = document.querySelector("[data-bidet-detail-stack]");
+
+  if (image) {
+    image.src = product.image;
+    image.alt = `${product.name} ${product.model}`;
+  }
+  if (title) {
+    title.innerHTML = `${product.name}<span>${product.model}</span>`;
+  }
+  if (badges) {
+    badges.innerHTML = product.benefit ? `<span>${product.benefit}</span>` : "";
+  }
+  if (guide) {
+    renderRentalGuide(guide, product);
+  }
+  if (detailStack) {
+    detailStack.innerHTML = product.detailImage
+      ? `<img src="${product.detailImage}" alt="${product.name} ${product.model} 상세 이미지">`
+      : `<p class="detail-placeholder">상세 이미지는 준비 중입니다.</p>`;
+  }
+}
+
+function renderMattressDetailPage() {
+  if (document.body.dataset.page !== "mattress-detail") return;
+
+  const id = new URLSearchParams(location.search).get("id");
+  const product = (DATA.sleep || []).find((item) => item.id === id) || (DATA.sleep || [])[0];
+  if (!product) return;
+
+  document.title = `${product.name} ${product.model} | 세모가 - SK매직 다이렉트`;
+
+  const image = document.querySelector("[data-mattress-detail-image]");
+  const title = document.querySelector("[data-mattress-detail-title]");
+  const badges = document.querySelector("[data-mattress-detail-badges]");
+  const guide = document.querySelector("[data-mattress-rental-guide]");
+  const detailStack = document.querySelector("[data-mattress-detail-stack]");
+
+  if (image) {
+    image.src = product.image;
+    image.alt = `${product.name} ${product.model}`;
+  }
+  if (title) {
+    title.innerHTML = `${product.name}<span>${product.model}</span>`;
+  }
+  if (badges) {
+    badges.innerHTML = product.benefit ? `<span>${product.benefit}</span>` : "";
+  }
+  if (guide) {
+    renderRentalGuide(guide, product);
+  }
+  if (detailStack) {
+    detailStack.innerHTML = product.detailImage
+      ? `<img src="${product.detailImage}" alt="${product.name} ${product.model} 상세 이미지">`
+      : `<p class="detail-placeholder">상세 이미지는 준비 중입니다.</p>`;
+  }
+}
+
 function bindRentalTabs() {
   const tabs = document.querySelectorAll("[data-rental-tab]");
   const panels = document.querySelectorAll("[data-rental-panel]");
@@ -319,6 +399,8 @@ renderHome();
 renderCategoryPage();
 renderWaterDetailPage();
 renderAirDetailPage();
+renderBidetDetailPage();
+renderMattressDetailPage();
 bindRentalTabs();
 syncRoute();
 syncHeaderState();
