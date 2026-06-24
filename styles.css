@@ -1277,6 +1277,7 @@ details p {
   height: 19px;
   flex: 0 0 19px;
   background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Z'/%3E%3Cpath d='M16 16a2 2 0 0 1 2-2h3v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3Z'/%3E%3Cpath d='M3 14v-2a9 9 0 0 1 18 0v2'/%3E%3Cpath d='M18 21c0 1.2-1.8 2-4 2h-2'/%3E%3C/svg%3E") center / contain no-repeat;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Z'/%3E%3Cpath d='M16 16a2 2 0 0 1 2-2h3v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3Z'/%3E%3Cpath d='M3 14v-2a9 9 0 0 1 18 0v2'/%3E%3Cpath d='M18 21c0 1.2-1.8 2-4 2h-2'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 
